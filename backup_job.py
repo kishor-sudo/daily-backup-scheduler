@@ -34,7 +34,20 @@ def run_backup():
         shutil.copytree(SOURCE_DIR, dest)
         logging.info(f"Backup created at {dest}")
     except Exception as e:
-        logging.error(f"Backup failed: {e}")
+        import requests
+
+        WEBHOOK_URL = "https://your-webhook-url-here"
+
+        def notify_failure(error_msg):
+            try:
+                requests.post(WEBHOOK_URL, json={"text": f"Backup job failed: {error_msg}"})
+            except Exception as notify_err:
+                logging.error(f"Failed to send alert: {notify_err}")
+
+        # in run_backup(), inside except block:
+            except Exception as e:
+                logging.error(f"Backup failed: {e}")
+                notify_failure(e)
     finally:
         os.remove(LOCK_FILE)
 
